@@ -1,8 +1,7 @@
 
 
-export default function Home() {
+export default function Ingreso() {
   return (
-    <h1>Ingresa a tu cuenta</h1>
-
+      <h1> Autenticación </h1>
   );
 }

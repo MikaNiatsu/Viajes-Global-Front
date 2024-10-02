@@ -1,5 +1,11 @@
-import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
 
 export default function SingInLayout({
   children,
@@ -11,16 +17,21 @@ export default function SingInLayout({
   registro: React.ReactNode;
 }) {
   return (
-    <>
-      <div>{children}</div>
-      <Tabs defaultValue="login">
-        <TabsList>
-          <TabsTrigger value="login">Ingresar</TabsTrigger>
-          <TabsTrigger value="resgistro">Registrarse</TabsTrigger>
-        </TabsList>
-        <TabsContent value="login">{login}</TabsContent>
-        <TabsContent value="resgistro">{registro}</TabsContent>
-      </Tabs>
-    </>
+    
+    <Card className="mx-auto w-[400px] mt-20">
+      <CardHeader>
+        <CardTitle>{children}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="login">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Ingresar</TabsTrigger>
+            <TabsTrigger value="registro">Registrarse</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login">{login}</TabsContent>
+          <TabsContent value="registro">{registro}</TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }
