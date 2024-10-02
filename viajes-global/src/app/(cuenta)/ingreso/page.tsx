@@ -2,6 +2,6 @@
 
 export default function Ingreso() {
   return (
-      <h1> Autenticación </h1>
+      <div>Autenticación</div>
   );
 }

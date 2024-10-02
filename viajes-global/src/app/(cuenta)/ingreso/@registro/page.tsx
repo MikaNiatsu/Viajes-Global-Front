@@ -1,37 +1,37 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 //import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function RegistroForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   //const router = useRouter()
 
   async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
-    setIsLoading(true)
+    event.preventDefault();
+    setIsLoading(true);
 
     const target = event.target as typeof event.target & {
-      nombre: { value: string }
-      email: { value: string }
-      password: { value: string }
-    }
+      nombre: { value: string };
+      email: { value: string };
+      password: { value: string };
+    };
 
-    const nombre = target.nombre.value
-    const email = target.email.value
-    const password = target.password.value
+    const nombre = target.nombre.value;
+    const email = target.email.value;
+    const password = target.password.value;
 
     // TODO: Implement actual registration logic here
-    console.log('Registration attempt', { nombre, email, password })
+    console.log("Registration attempt", { nombre, email, password });
 
     setTimeout(() => {
-      setIsLoading(false)
+      setIsLoading(false);
       // TODO: Handle successful registration (e.g., redirect to login or dashboard)
       // router.push('/dashboard')
-    }, 3000)
+    }, 3000);
   }
 
   return (
@@ -75,16 +75,10 @@ export default function RegistroForm() {
             />
           </div>
           <Button disabled={isLoading}>
-            {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+            {isLoading ? "Creando cuenta..." : "Crear cuenta"}
           </Button>
         </div>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-      </div>
-      
     </div>
-  )
+  );
 }

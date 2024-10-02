@@ -1,35 +1,36 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 //import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   //const router = useRouter()
 
   async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
-    setIsLoading(true)
+    event.preventDefault();
+    setIsLoading(true);
 
     const target = event.target as typeof event.target & {
-      email: { value: string }
-      password: { value: string }
-    }
+      email: { value: string };
+      password: { value: string };
+    };
 
-    const email = target.email.value
-    const password = target.password.value
+    const email = target.email.value;
+    const password = target.password.value;
 
     // TODO: Implement actual login logic here
-    console.log('Login attempt', { email, password })
+    console.log("Login attempt", { email, password });
 
     setTimeout(() => {
-      setIsLoading(false)
+      setIsLoading(false);
       // TODO: Handle successful login (e.g., redirect to dashboard)
       // router.push('/dashboard')
-    }, 3000)
+    }, 3000);
   }
 
   return (
@@ -60,8 +61,9 @@ export default function LoginForm() {
               disabled={isLoading}
             />
           </div>
+
           <Button disabled={isLoading}>
-            {isLoading ? 'Ingresando...' : 'Ingresar'}
+            {isLoading ? "Ingresando..." : "Ingresar"}
           </Button>
         </div>
       </form>
@@ -69,9 +71,15 @@ export default function LoginForm() {
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
-        
       </div>
-      
+      <div className="text-center">
+        <Link
+          href="/password"
+          className="text-sm text-muted-foreground hover:text-primary"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
     </div>
-  )
+  );
 }

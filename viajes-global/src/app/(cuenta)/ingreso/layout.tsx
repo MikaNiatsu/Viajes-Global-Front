@@ -1,11 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SingInLayout({
   children,
@@ -17,8 +11,7 @@ export default function SingInLayout({
   registro: React.ReactNode;
 }) {
   return (
-    
-    <Card className="mx-auto w-[400px] mt-20">
+    <Card className="mx-auto w-[400px] mt-40 mb-16">
       <CardHeader>
         <CardTitle>{children}</CardTitle>
       </CardHeader>
