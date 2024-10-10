@@ -1,4 +1,5 @@
 import Footer from "@/components/footer";
+import Nav from "@/components/nav";
 import "./globals.css";
 import { Nunito } from "next/font/google";
 
@@ -20,7 +21,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
+      
       <body className={`${nunito.className} antialiased`}>
+      <div>
+        <Nav />
+        </div>
         <main className="mx-auto max-w-7xl">{children}</main>
         <Footer />
       </body>
