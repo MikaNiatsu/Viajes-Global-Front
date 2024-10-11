@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-//import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  //const router = useRouter()
+  const router = useRouter();
+  const { login } = useAuth();
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
@@ -23,14 +25,14 @@ export default function LoginForm() {
     const email = target.email.value;
     const password = target.password.value;
 
-    // TODO: Implement actual login logic here
-    console.log("Login attempt", { email, password });
-
-    setTimeout(() => {
+    try {
+      await login({ email, password });
+      router.push('/');
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
       setIsLoading(false);
-      // TODO: Handle successful login (e.g., redirect to dashboard)
-      // router.push('/dashboard')
-    }, 3000);
+    }
   }
 
   return (

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,10 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ShoppingCart, User, LogOut, Settings } from "lucide-react";
-import { format, addDays } from "date-fns";
-
+import { format } from "date-fns";
+import { useAuth } from "@/hooks/useAuth";
 // Mock data for destinations
 const destinations = [
   { id: "caribe", name: "Playas del Caribe" },
@@ -44,46 +41,38 @@ const recommendations = [
   {
     id: 1,
     title: "Playas del Caribe",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 2,
     title: "Montañas de los Alpes",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 3,
     title: "Ciudades de Europa",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 4,
     title: "Maravillas de Asia",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 5,
     title: "Playas del Caribe",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 6,
     title: "Montañas de los Alpes",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 7,
     title: "Ciudades de Europa",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
-  
 ];
 
 // Mock data for offers
@@ -92,22 +81,19 @@ const offers = [
     id: 1,
     title: "Escapada a París",
     description: "3 noches + vuelos desde $599",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 2,
     title: "Aventura en Costa Rica",
     description: "7 noches todo incluido desde $899",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
   {
     id: 3,
     title: "Explora Tokio",
     description: "5 noches + tours desde $1299",
-    image:
-      "https://picsum.photos/500/300",
+    image: "https://picsum.photos/500/300",
   },
 ];
 
@@ -117,8 +103,7 @@ export default function TravelStorePage() {
   const [returnDate, setReturnDate] = useState<Date>();
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Mock login state
-  const router = useRouter();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,9 +116,20 @@ export default function TravelStorePage() {
     });
     // Implement search logic here
   };
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-10">
+      {isAuthenticated && (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-8" role="alert">
+          <p className="font-bold">Bienvenido, {user?.email}!</p>
+          <p>Nos alegra verte de nuevo. ¿Listo para planear tu próximo viaje?</p>
+        </div>
+      )}
+
       <section className="mb-12">
         <h2 className="text-3xl font-bold mb-4">Destinos recomendados</h2>
         <Carousel>
@@ -142,10 +138,12 @@ export default function TravelStorePage() {
               <CarouselItem key={rec.id} className="md:basis-1/2 lg:basis-1/3">
                 <Card>
                   <CardContent className="p-0">
-                    <img
+                    <Image
                       src={rec.image}
                       alt={rec.title}
                       className="w-full h-48 object-cover"
+                      width={500}
+                      height={300}
                     />
                     <div className="p-4">
                       <h3 className="font-semibold">{rec.title}</h3>
