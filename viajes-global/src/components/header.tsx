@@ -16,14 +16,13 @@ export default function Header() {
   };
 
   if (!isClient) {
-    // Return a placeholder or loading state for server-side rendering
     return <div>Loading...</div>;
   }
 
   return (
     <Nav
       isLoggedIn={isAuthenticated}
-      userEmail={user?.email}
+      userEmail={user?.correo}
       onLogout={handleLogout}
     />
   );

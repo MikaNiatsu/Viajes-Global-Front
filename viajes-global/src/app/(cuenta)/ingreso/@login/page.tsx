@@ -22,11 +22,11 @@ export default function LoginForm() {
       password: { value: string };
     };
 
-    const email = target.email.value;
-    const password = target.password.value;
+    const correo = target.email.value;
+    const contrasena = target.password.value;
 
     try {
-      await login({ email, password });
+      await login({ correo, contrasena });
       router.push('/');
     } catch (error) {
       console.error("Login failed:", error);

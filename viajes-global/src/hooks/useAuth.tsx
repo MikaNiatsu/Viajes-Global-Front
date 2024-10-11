@@ -40,7 +40,7 @@ export function useAuth() {
     setIsLoading(false);
   };
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (credentials: { correo: string; contrasena: string }) => {
     try {
       const response = await fetch('/api/login', {
         method: 'POST',

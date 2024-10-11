@@ -1,9 +1,9 @@
 export interface Cliente {
     id: number;
-    email: string;
+    correo: string;
     usuario: string;
-    telefono: string;
-    password: string;
+    contrasena: string;
+    celular: string;
     eleccion_push: boolean;
     eleccion_sms: boolean;
     eleccion_email: boolean;
@@ -60,5 +60,4 @@ export interface Reserva {
     correo: string;
     celular: string;
 }
-
 
