@@ -16,8 +16,8 @@ export default function PasswordRecovery() {
   const [pin, setPin] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [stage, setStage] = useState<"email" | "pin" | "newPassword" | "success">("email");
+  const [token, setToken] = useState<number | null>(null);
   const { toast } = useToast();
-
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -25,11 +25,20 @@ export default function PasswordRecovery() {
       // TODO: Implement email submission logic here
       console.log("Password reset requested for:", email);
       // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      // Check if email is valid <--
+      const response = await fetch("/api/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json();
       if (!email) {
         throw new Error("Por favor, introduce tu correo electrónico.");
       }
+      if (!response.ok) {
+        throw new Error("Correo electrónico no encontrado.");
+      }
+      setToken(data.token);  
+      //eslint-disable-next-line
       setStage("pin");
       toast({
         title: "Código enviado",
@@ -41,7 +50,7 @@ export default function PasswordRecovery() {
       toast({
         title: "Error",
         description:
-          error.message || "No se pudo enviar el código de recuperación.",
+          error.message,
         variant: "destructive",
       });
     } finally {
@@ -56,9 +65,8 @@ export default function PasswordRecovery() {
     try {
       // TODO: Implement PIN verification logic here
       console.log("PIN submitted:", pinString);
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (pinString !== "123456") {
+      console.log("Token:", token);
+      if (pinString !== token.toString()) {
         throw new Error("PIN incorrecto");
       }
       setStage("newPassword");
