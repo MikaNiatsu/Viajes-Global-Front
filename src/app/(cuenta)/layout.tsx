@@ -31,7 +31,7 @@ export default function AuthLayout({
           </div>
           <div className="flex justify-center mt-4">
             <Link href="/">
-              <Button variant="outline">Volver</Button>
+              <Button>Volver</Button>
             </Link>
           </div>
         </main>
