@@ -66,7 +66,7 @@ export default function PasswordRecovery() {
       // TODO: Implement PIN verification logic here
       console.log("PIN submitted:", pinString);
       console.log("Token:", token);
-      if (pinString !== token.toString()) {
+      if (token !== null && pinString !== token.toString()) {
         throw new Error("PIN incorrecto");
       }
       setStage("newPassword");

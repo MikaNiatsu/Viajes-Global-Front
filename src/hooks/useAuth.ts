@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Cliente } from '@/types/objects'
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<Cliente | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export function useAuth() {
     checkAuth()
   }, [])
 
+
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await fetch('/api/login', {
@@ -49,7 +52,8 @@ export function useAuth() {
         const data = await response.json()
         localStorage.setItem('auth_token', data.token)
         setIsAuthenticated(true)
-        router.push('/dashboard')
+        setUser(data.user)
+        router.push('/')
       } else {
         throw new Error('Login failed')
       }
@@ -71,5 +75,5 @@ export function useAuth() {
     }
   }
 
-  return { isAuthenticated, isLoading, login, logout }
+  return { isAuthenticated, isLoading, login, logout, user }
 }
