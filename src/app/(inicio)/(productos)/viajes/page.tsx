@@ -37,10 +37,10 @@ function FlightSearch() {
 
   const [flights, setFlights] = useState<Flight[]>(mockFlights)
   const [sortBy, setSortBy] = useState<string>(searchParams.get('sortBy') || 'price')
-  const [filterAirline, setFilterAirline] = useState<string>(searchParams.get('airline') || '')
+  const [filterAirline, setFilterAirline] = useState<string>(searchParams.get('airline') || 'all')
   const [maxPrice, setMaxPrice] = useState<number>(parseInt(searchParams.get('maxPrice') || '1000'))
-  const [fromLocation, setFromLocation] = useState<string>(searchParams.get('from') || '')
-  const [toLocation, setToLocation] = useState<string>(searchParams.get('to') || '')
+  const [fromLocation, setFromLocation] = useState<string>(searchParams.get('from') || 'all')
+  const [toLocation, setToLocation] = useState<string>(searchParams.get('to') || 'all')
   const [departureDate, setDepartureDate] = useState<Date | undefined>(
     searchParams.get('date') ? new Date(searchParams.get('date') as string) : undefined
   )
@@ -48,16 +48,16 @@ function FlightSearch() {
   useEffect(() => {
     let filteredFlights = [...mockFlights]
 
-    if (filterAirline) {
+    if (filterAirline && filterAirline !== 'all') {
       filteredFlights = filteredFlights.filter(flight => flight.airline === filterAirline)
     }
 
     filteredFlights = filteredFlights.filter(flight => flight.price <= maxPrice)
 
-    if (fromLocation) {
+    if (fromLocation && fromLocation !== 'all') {
       filteredFlights = filteredFlights.filter(flight => flight.from.toLowerCase().includes(fromLocation.toLowerCase()))
     }
-    if (toLocation) {
+    if (toLocation && toLocation !== 'all') {
       filteredFlights = filteredFlights.filter(flight => flight.to.toLowerCase().includes(toLocation.toLowerCase()))
     }
 
@@ -78,10 +78,10 @@ function FlightSearch() {
 
     const params = new URLSearchParams()
     if (sortBy) params.set('sortBy', sortBy)
-    if (filterAirline) params.set('airline', filterAirline)
+    if (filterAirline !== 'all') params.set('airline', filterAirline)
     if (maxPrice !== 1000) params.set('maxPrice', maxPrice.toString())
-    if (fromLocation) params.set('from', fromLocation)
-    if (toLocation) params.set('to', toLocation)
+    if (fromLocation !== 'all') params.set('from', fromLocation)
+    if (toLocation !== 'all') params.set('to', toLocation)
     if (departureDate) params.set('date', departureDate.toISOString().split('T')[0])
 
     router.push(`/viajes?${params.toString()}`)
@@ -115,7 +115,7 @@ function FlightSearch() {
               <SelectValue placeholder="Todas las aerolíneas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las aerolíneas</SelectItem>
+              <SelectItem value="all">Todas las aerolíneas</SelectItem>
               {airlines.map(airline => (
                 <SelectItem key={airline} value={airline}>{airline}</SelectItem>
               ))}
@@ -143,7 +143,7 @@ function FlightSearch() {
               <SelectValue placeholder="Seleccionar origen" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los orígenes</SelectItem>
+              <SelectItem value="all">Todos los orígenes</SelectItem>
               {locations.map(location => (
                 <SelectItem key={location} value={location}>{location}</SelectItem>
               ))}
@@ -158,7 +158,7 @@ function FlightSearch() {
               <SelectValue placeholder="Seleccionar destino" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los destinos</SelectItem>
+              <SelectItem value="all">Todos los destinos</SelectItem>
               {locations.map(location => (
                 <SelectItem key={location} value={location}>{location}</SelectItem>
               ))}
