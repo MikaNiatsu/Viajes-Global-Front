@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from 'react'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -30,7 +31,7 @@ const mockFlights: Flight[] = [
   { id: '6', from: 'London', to: 'New York', airline: 'British Airways', departureDate: '2023-07-17', price: 480 },
 ]
 
-export default function FlightsPage() {
+function FlightSearch() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -114,7 +115,7 @@ export default function FlightsPage() {
               <SelectValue placeholder="Todas las aerolíneas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las aerolíneas</SelectItem>
+              <SelectItem value="">Todas las aerolíneas</SelectItem>
               {airlines.map(airline => (
                 <SelectItem key={airline} value={airline}>{airline}</SelectItem>
               ))}
@@ -142,7 +143,7 @@ export default function FlightsPage() {
               <SelectValue placeholder="Seleccionar origen" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los orígenes</SelectItem>
+              <SelectItem value="">Todos los orígenes</SelectItem>
               {locations.map(location => (
                 <SelectItem key={location} value={location}>{location}</SelectItem>
               ))}
@@ -157,7 +158,7 @@ export default function FlightsPage() {
               <SelectValue placeholder="Seleccionar destino" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los destinos</SelectItem>
+              <SelectItem value="">Todos los destinos</SelectItem>
               {locations.map(location => (
                 <SelectItem key={location} value={location}>{location}</SelectItem>
               ))}
@@ -220,5 +221,14 @@ export default function FlightsPage() {
         <p className="text-center text-muted-foreground mt-8">No se encontraron vuelos que coincidan con los criterios de búsqueda.</p>
       )}
     </div>
+  )
+}
+
+// Default export wrapped in Suspense
+export default function FlightsPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <FlightSearch />
+    </Suspense>
   )
 }
