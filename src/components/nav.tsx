@@ -14,10 +14,10 @@ import {
 import { ShoppingCart, User, LogOut, Settings, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 const productCategories = [
-  { name: "Vuelos", href: "/productos/vuelos" },
-  { name: "Hoteles", href: "/productos/hoteles" },
-  { name: "Paquetes", href: "/productos/paquetes" },
-  { name: "Actividades", href: "/productos/actividades" },
+  { name: "Viajes", href: "/viajes" },
+  { name: "Hoteles", href: "/hoteles" },
+  { name: "Paquetes", href: "/paquetes" },
+  { name: "Actividades", href: "/actividades" },
 ];
 
 interface NavProps {
