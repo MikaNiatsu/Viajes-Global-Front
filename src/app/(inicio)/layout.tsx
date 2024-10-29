@@ -2,6 +2,7 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import "./globals.css";
 import { Nunito } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 
 export const metadata = {
   title: "Viajes Global",
@@ -22,11 +23,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${nunito.className} antialiased`}>
-        <div>
-          <Header />
-        </div>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div>
+            <Header />
+          </div>
           <main className="mx-auto max-w-7xl">{children}</main>
           <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

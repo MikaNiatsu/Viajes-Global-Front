@@ -2,6 +2,8 @@ import "./globals.css";
 import { Nunito } from "next/font/google";
 import Link  from "next/link";
 import { Button } from "@/components/ui/button";
+import { ThemeProvider } from 'next-themes'
+
 
 export const metadata = {
   title: "Viajes Global",
@@ -23,6 +25,7 @@ export default function AuthLayout({
   return (
     <html lang="es">
       <body className={`${nunito.className} antialiased`}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <main className="mx-auto max-w-7xl p-4 md:p-6 md:pt-16">
           <div className="flex items-center justify-center">
             <div className="w-full md:w-1/2 lg:w-1/3">
@@ -35,6 +38,7 @@ export default function AuthLayout({
             </Link>
           </div>
         </main>
+        </ThemeProvider>
       </body>
     </html>
   );

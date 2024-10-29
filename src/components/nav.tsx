@@ -11,8 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, User, LogOut, Settings, Menu } from "lucide-react";
+import { ShoppingCart, User, LogOut, Settings, Menu, Sun, Moon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+
 const productCategories = [
   { name: "Viajes", href: "/viajes" },
   { name: "Hoteles", href: "/hoteles" },
@@ -28,11 +30,13 @@ interface NavProps {
 
 export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
   const pathname = usePathname();
-
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+
   const refresh = () => {
     router.refresh();
   }
+
   const navItems = [
     { name: "Inicio", href: "/" },
     { name: "Ofertas", href: "/ofertas" },
@@ -77,6 +81,14 @@ export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
           </nav>
         </div>
         <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
           <Button variant="outline" size="icon">
             <ShoppingCart className="h-5 w-5" />
           </Button>
@@ -103,7 +115,7 @@ export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
                     <User className="mr-2 h-4 w-4" />
                     <span>{userEmail}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => console.log("Settings")}>
+                  <DropdownMenuItem onSelect={() => router.push("/ajustes")}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Ajustes</span>
                   </DropdownMenuItem>

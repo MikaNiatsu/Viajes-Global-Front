@@ -25,7 +25,7 @@ export default function LoginForm() {
     const password = formData.get('password') as string
 
     try {
-      await login({ email: email, password: password })
+      await login({ correo: email, contrasena: password })
       router.push("/")
     } catch (error) {
       console.error("Login failed:", error)
