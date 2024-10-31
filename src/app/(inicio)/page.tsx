@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Hand } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -104,6 +105,13 @@ export default function TravelStorePage() {
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  useEffect(() => {
+    if (isInitialLoad) {
+      const timer = setTimeout(() => setIsInitialLoad(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoad]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,209 +130,220 @@ export default function TravelStorePage() {
   }
 
   return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-10">
-        {isAuthenticated && (
-          <div
-            className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-8"
-            role="alert"
-          >
-            <p className="font-bold">Bienvenido, {user?.correo}!</p>
-            <p>
-              Nos alegra verte de nuevo. ¿Listo para planear tu próximo viaje?
-            </p>
-          </div>
-        )}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-10">
+      {isAuthenticated && (
+        <div
+          className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-8"
+          role="alert"
+        >
+          <p className="font-bold">Bienvenido, {user?.correo}!</p>
+          <p>
+            Nos alegra verte de nuevo. ¿Listo para planear tu próximo viaje?
+          </p>
+        </div>
+      )}
 
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold mb-4">Destinos recomendados</h2>
-          <Carousel>
-            <CarouselContent>
-              {recommendations.map((rec) => (
-                <CarouselItem
-                  key={rec.id}
-                  className="md:basis-1/2 lg:basis-1/3"
-                >
-                  <Card>
-                    <CardContent className="p-0">
-                      <Image
-                        src={rec.image}
-                        alt={rec.title}
-                        className="w-full h-48 object-cover"
-                        width={500}
-                        height={300}
-                      />
-                      <div className="p-4">
-                        <h3 className="font-semibold">{rec.title}</h3>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
+      <section className="mb-12">
+        <h2 className="text-3xl font-bold mb-4">Destinos recomendados</h2>
+        <Carousel className="w-full">
+          <CarouselContent>
+            {recommendations.map((rec) => (
+              <CarouselItem key={rec.id} className="md:basis-1/2 lg:basis-1/3">
+                <Card>
+                  <CardContent className="p-0">
+                    <Image
+                      src={rec.image}
+                      alt={rec.title}
+                      className="w-full h-48 object-cover"
+                      width={500}
+                      height={300}
+                    />
+                    <div className="p-4">
+                      <h3 className="font-semibold">{rec.title}</h3>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+
+          <div className="hidden md:block">
             <CarouselPrevious />
             <CarouselNext />
-          </Carousel>
-        </section>
+          </div>
 
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold mb-4">Busca tu próximo viaje</h2>
-          <form
-            onSubmit={handleSearch}
-            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          <div
+            className={`md:hidden absolute inset-0 flex items-center justify-center pointer-events-none
+          ${isInitialLoad ? "opacity-100" : "opacity-0"} 
+          transition-opacity duration-500`}
           >
-            <div>
-              <Label htmlFor="destination">Destino</Label>
-              <Select value={destination} onValueChange={setDestination}>
-                <SelectTrigger id="destination">
-                  <SelectValue placeholder="Selecciona un destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  {destinations.map((dest) => (
-                    <SelectItem key={dest.id} value={dest.id}>
-                      {dest.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="bg-black/60 text-white px-6 py-3 rounded-lg flex items-center gap-2">
+              <Hand className="w-6 h-6" />
+              <span className="text-sm">Desliza para navegar</span>
             </div>
-            <div>
-              <Label htmlFor="departureDate">Fecha de ida</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="departureDate"
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    {departureDate ? (
-                      format(departureDate, "PP")
-                    ) : (
-                      <span>Selecciona una fecha</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={departureDate}
-                    onSelect={setDepartureDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label htmlFor="returnDate">Fecha de vuelta</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="returnDate"
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    {returnDate ? (
-                      format(returnDate, "PP")
-                    ) : (
-                      <span>Selecciona una fecha</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={returnDate}
-                    onSelect={setReturnDate}
-                    disabled={(date) => date < (departureDate || new Date())}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label htmlFor="adults">Adultos</Label>
-              <Input
-                id="adults"
-                type="number"
-                min="1"
-                value={adults}
-                onChange={(e) => setAdults(parseInt(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="children">Niños</Label>
-              <Input
-                id="children"
-                type="number"
-                min="0"
-                value={children}
-                onChange={(e) => setChildren(parseInt(e.target.value))}
-              />
-            </div>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full">
-                Buscar
-              </Button>
-            </div>
-          </form>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold mb-4">Ofertas especiales</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {offers.map((offer) => (
-              <Card key={offer.id}>
-                <CardContent className="p-0">
-                  <Image
-                    src={offer.image}
-                    alt={offer.title}
-                    className="w-full h-48 object-cover"
-                    width={400}
-                    height={200}
-                  />
-                  <div className="p-4">
-                    <h3 className="font-semibold mb-2">{offer.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {offer.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
           </div>
-        </section>
+        </Carousel>
+      </section>
 
-        <section>
-          <h2 className="text-3xl font-bold mb-4">Información de interés</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">Consejos para viajeros</h3>
-                <p className="text-sm text-muted-foreground">
-                  Descubre los mejores consejos para hacer tu viaje inolvidable
-                  y seguro.
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">Destinos populares</h3>
-                <p className="text-sm text-muted-foreground">
-                  Explora los lugares más visitados y planifica tu próxima
-                  aventura.
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">Ofertas especiales</h3>
-                <p className="text-sm text-muted-foreground">
-                  No te pierdas nuestras promociones exclusivas y ahorra en tu
-                  próximo viaje.
-                </p>
-              </CardContent>
-            </Card>
+      <section className="mb-12">
+        <h2 className="text-3xl font-bold mb-4">Busca tu próximo viaje</h2>
+        <form
+          onSubmit={handleSearch}
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+        >
+          <div>
+            <Label htmlFor="destination">Destino</Label>
+            <Select value={destination} onValueChange={setDestination}>
+              <SelectTrigger id="destination">
+                <SelectValue placeholder="Selecciona un destino" />
+              </SelectTrigger>
+              <SelectContent>
+                {destinations.map((dest) => (
+                  <SelectItem key={dest.id} value={dest.id}>
+                    {dest.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </section>
-      </div>
+          <div>
+            <Label htmlFor="departureDate">Fecha de ida</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="departureDate"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {departureDate ? (
+                    format(departureDate, "PP")
+                  ) : (
+                    <span>Selecciona una fecha</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={departureDate}
+                  onSelect={setDepartureDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="returnDate">Fecha de vuelta</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="returnDate"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {returnDate ? (
+                    format(returnDate, "PP")
+                  ) : (
+                    <span>Selecciona una fecha</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={returnDate}
+                  onSelect={setReturnDate}
+                  disabled={(date) => date < (departureDate || new Date())}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="adults">Adultos</Label>
+            <Input
+              id="adults"
+              type="number"
+              min="1"
+              value={adults}
+              onChange={(e) => setAdults(parseInt(e.target.value))}
+            />
+          </div>
+          <div>
+            <Label htmlFor="children">Niños</Label>
+            <Input
+              id="children"
+              type="number"
+              min="0"
+              value={children}
+              onChange={(e) => setChildren(parseInt(e.target.value))}
+            />
+          </div>
+          <div className="flex items-end">
+            <Button type="submit" className="w-full">
+              Buscar
+            </Button>
+          </div>
+        </form>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl font-bold mb-4">Ofertas especiales</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {offers.map((offer) => (
+            <Card key={offer.id}>
+              <CardContent className="p-0">
+                <Image
+                  src={offer.image}
+                  alt={offer.title}
+                  className="w-full h-48 object-cover"
+                  width={400}
+                  height={200}
+                />
+                <div className="p-4">
+                  <h3 className="font-semibold mb-2">{offer.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {offer.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-3xl font-bold mb-4">Información de interés</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold mb-2">Consejos para viajeros</h3>
+              <p className="text-sm text-muted-foreground">
+                Descubre los mejores consejos para hacer tu viaje inolvidable y
+                seguro.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold mb-2">Destinos populares</h3>
+              <p className="text-sm text-muted-foreground">
+                Explora los lugares más visitados y planifica tu próxima
+                aventura.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-semibold mb-2">Ofertas especiales</h3>
+              <p className="text-sm text-muted-foreground">
+                No te pierdas nuestras promociones exclusivas y ahorra en tu
+                próximo viaje.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </div>
   );
 }

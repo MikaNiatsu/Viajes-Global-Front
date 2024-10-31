@@ -21,14 +21,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className={`${nunito.className} antialiased`}>
+    <html lang="es" className="min-h-screen">
+      <body className={`${nunito.className} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div>
+          <div className="w-full">
             <Header />
           </div>
-          <main className="mx-auto max-w-7xl">{children}</main>
+          
+          <main className="flex-1 w-full">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {children}
+            </div>
+          </main>
+          <div className="w-full">
           <Footer />
+          </div>
         </ThemeProvider>
       </body>
     </html>

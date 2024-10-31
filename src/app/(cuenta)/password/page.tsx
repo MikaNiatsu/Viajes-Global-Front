@@ -139,22 +139,23 @@ export default function PasswordRecovery() {
 
   return (
     <>
-      <Card className="mx-auto w-[400px] mt-40 mb-32">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">
+      {/* Mobile Layout */}
+      <div className="md:hidden min-h-screen">
+        <div className="p-4 space-y-6">
+          <h1 className="text-2xl font-bold">
             Recuperación de contraseña
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </h1>
+          
+          {/* Email Stage */}
           {stage === "email" && (
-            <div className="grid gap-6">
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-6">
+              <p className="text-base text-muted-foreground">
                 Ingresa el correo electrónico asociado a tu cuenta para recibir
                 un código de recuperación.
               </p>
-              <form onSubmit={handleEmailSubmit} className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Correo electrónico</Label>
+              <form onSubmit={handleEmailSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-base">Correo electrónico</Label>
                   <Input
                     id="email"
                     placeholder="tu@email.com"
@@ -162,11 +163,12 @@ export default function PasswordRecovery() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="h-12 text-base"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full h-12 text-base"
                   disabled={isLoading || !email}
                 >
                   {isLoading ? "Enviando..." : "Enviar código"}
@@ -174,16 +176,18 @@ export default function PasswordRecovery() {
               </form>
             </div>
           )}
+
+          {/* PIN Stage */}
           {stage === "pin" && (
-            <div className="grid gap-6">
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-6">
+              <p className="text-base text-muted-foreground">
                 Por favor, introduce el código de recuperación enviado por
                 correo electrónico.
               </p>
-              <form onSubmit={handlePinSubmit} className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="pin-0">Código de recuperación</Label>
-                  <div className="flex justify-between">
+              <form onSubmit={handlePinSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="pin-0" className="text-base">Código de recuperación</Label>
+                  <div className="flex justify-between gap-2">
                     {pin.map((digit, index) => (
                       <Input
                         key={index}
@@ -192,7 +196,7 @@ export default function PasswordRecovery() {
                         inputMode="numeric"
                         pattern="\d"
                         maxLength={1}
-                        className="w-10 text-center"
+                        className="w-12 h-12 text-center text-lg"
                         value={digit}
                         onChange={(e) => handlePinChange(index, e.target.value)}
                         required
@@ -202,82 +206,228 @@ export default function PasswordRecovery() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full h-12 text-base"
                   disabled={isLoading || pin.some((digit) => !digit)}
                 >
                   {isLoading ? "Verificando..." : "Verificar código"}
                 </Button>
-                <Button variant={"link"} type="button" onClick={() => console.log("pin")}>
+                <Button 
+                  variant="link" 
+                  type="button" 
+                  onClick={() => console.log("pin")}
+                  className="w-full text-base"
+                >
                   Volver a Enviar código
                 </Button>
               </form>
             </div>
           )}
+
+          {/* New Password Stage */}
           {stage === "newPassword" && (
-            <div className="grid gap-6">
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-6">
+              <p className="text-base text-muted-foreground">
                 Ingresa tu nueva contraseña.
               </p>
-              <form onSubmit={handleNewPasswordSubmit} className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+              <form onSubmit={handleNewPasswordSubmit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="newPassword" className="text-base">Nueva contraseña</Label>
                   <Input
                     id="newPassword"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
+                    className="h-12 text-base"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="confirmPassword" className="text-base">Confirmar contraseña</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    className="h-12 text-base"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full"
-                  disabled={
-                    isLoading || !newPassword || newPassword !== confirmPassword
-                  }
+                  className="w-full h-12 text-base"
+                  disabled={isLoading || !newPassword || newPassword !== confirmPassword}
                 >
                   {isLoading ? "Actualizando..." : "Cambiar contraseña"}
                 </Button>
               </form>
             </div>
           )}
+
+          {/* Success Stage */}
           {stage === "success" && (
-            <div className="grid gap-6">
-              <p className="text-sm text-muted-foreground text-green-600">
-                Tu contraseña ha sido cambiada con exito, ahora puedes iniciar sesion!
+            <div className="space-y-6">
+              <p className="text-base text-green-600">
+                Tu contraseña ha sido cambiada con éxito, ¡ahora puedes iniciar sesión!
               </p>
             </div>
           )}
-          <div className="relative mt-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-          </div>
-          <div className="relative mt-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-          </div>
-          <div className="text-center mt-6">
-            <Link
-              href="/ingreso"
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
+        </div>
+
+        {/* Bottom Navigation - Mobile */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t">
+          <Link href="/ingreso">
+            <Button variant="outline" className="w-full h-12 text-base">
               Iniciar sesión
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <Card className="w-full shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold">
+                Recuperación de contraseña
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Email Stage */}
+              {stage === "email" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Ingresa el correo electrónico asociado a tu cuenta para recibir
+                    un código de recuperación.
+                  </p>
+                  <form onSubmit={handleEmailSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Correo electrónico</Label>
+                      <Input
+                        id="email"
+                        placeholder="tu@email.com"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoading || !email}
+                    >
+                      {isLoading ? "Enviando..." : "Enviar código"}
+                    </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* PIN Stage */}
+              {stage === "pin" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Por favor, introduce el código de recuperación enviado por
+                    correo electrónico.
+                  </p>
+                  <form onSubmit={handlePinSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pin-0">Código de recuperación</Label>
+                      <div className="flex justify-between gap-2">
+                        {pin.map((digit, index) => (
+                          <Input
+                            key={index}
+                            id={`pin-${index}`}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="\d"
+                            maxLength={1}
+                            className="w-10 text-center"
+                            value={digit}
+                            onChange={(e) => handlePinChange(index, e.target.value)}
+                            required
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoading || pin.some((digit) => !digit)}
+                    >
+                      {isLoading ? "Verificando..." : "Verificar código"}
+                    </Button>
+                    <Button variant="link" type="button" onClick={() => console.log("pin")}>
+                      Volver a Enviar código
+                    </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* New Password Stage */}
+              {stage === "newPassword" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Ingresa tu nueva contraseña.
+                  </p>
+                  <form onSubmit={handleNewPasswordSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">Nueva contraseña</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoading || !newPassword || newPassword !== confirmPassword}
+                    >
+                      {isLoading ? "Actualizando..." : "Cambiar contraseña"}
+                    </Button>
+                  </form>
+                </div>
+              )}
+
+              {/* Success Stage */}
+              {stage === "success" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-green-600">
+                    Tu contraseña ha sido cambiada con éxito, ¡ahora puedes iniciar sesión!
+                  </p>
+                </div>
+              )}
+
+              <div className="relative mt-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+              </div>
+              <div className="text-center mt-6">
+                <Link
+                  href="/ingreso"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  Iniciar sesión
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       <Toaster />
     </>
   );

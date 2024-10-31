@@ -1,9 +1,8 @@
 import "./globals.css";
 import { Nunito } from "next/font/google";
-import Link  from "next/link";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ThemeProvider } from 'next-themes'
-
+import { ThemeProvider } from "next-themes";
 
 export const metadata = {
   title: "Viajes Global",
@@ -16,7 +15,6 @@ const nunito = Nunito({
   display: "swap",
 });
 
-
 export default function AuthLayout({
   children,
 }: {
@@ -24,22 +22,39 @@ export default function AuthLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${nunito.className} antialiased`}>
+       <body className={`${nunito.className} antialiased bg-background min-h-screen`}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <main className="mx-auto max-w-7xl p-4 md:p-6 md:pt-16">
-          <div className="flex items-center justify-center">
-            <div className="w-full md:w-1/2 lg:w-1/3">
+        {/* Mobile Layout */}
+        <div className="md:hidden">
+          <main className="min-h-screen">
+            <div className="p-4 space-y-4">
               {children}
             </div>
-          </div>
-          <div className="flex justify-center mt-4">
-            <Link href="/">
-              <Button>Volver</Button>
-            </Link>
-          </div>
-        </main>
-        </ThemeProvider>
-      </body>
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t">
+              <Link href="/">
+                <Button variant="outline" className="w-full">
+                  Volver
+                </Button>
+              </Link>
+            </div>
+          </main>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden md:block">
+          <main className="min-h-screen flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-sm">
+              {children}
+              <div className="mt-4 flex justify-center">
+                <Link href="/">
+                  <Button variant="outline">Volver</Button>
+                </Link>
+              </div>
+            </div>
+          </main>
+        </div>
+      </ThemeProvider>
+    </body>
     </html>
   );
 }
