@@ -128,6 +128,9 @@ export default function TravelStorePage() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
+  if (isAuthenticated) {
+    console.log(user);
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-10">
@@ -136,7 +139,8 @@ export default function TravelStorePage() {
           className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-8"
           role="alert"
         >
-          <p className="font-bold">Bienvenido, {user?.correo}!</p>
+          <p className="font-bold">Bienvenido, {user?.name}!</p>
+          
           <p>
             Nos alegra verte de nuevo. ¿Listo para planear tu próximo viaje?
           </p>

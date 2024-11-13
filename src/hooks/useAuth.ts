@@ -23,7 +23,7 @@ export function useAuth() {
         });
         if (response.ok) {
           const data = await response.json();
-          setAuthState({ isAuthenticated: true, user: data.user });
+          setAuthState({ isAuthenticated: true, user: data.user.user });
         } else {
           localStorage.removeItem('auth_token');
           setAuthState({ isAuthenticated: false, user: null });

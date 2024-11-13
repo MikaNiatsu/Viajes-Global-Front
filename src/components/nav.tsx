@@ -42,7 +42,7 @@ export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
     { name: "Ofertas", href: "/ofertas" },
     { name: "Contacto", href: "/contacto" },
   ];
-  
+
   return (
     <header className="border-b sticky top-0 z-50 bg-background">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">

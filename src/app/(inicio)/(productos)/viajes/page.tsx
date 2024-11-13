@@ -8,34 +8,29 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Plane, Calendar, DollarSign } from 'lucide-react'
+import { Plane, Calendar, DollarSign, Star } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import Image from 'next/image'
+import { Vuelo } from '@/types/objects'
 
-interface Flight {
-  id: string
-  from: string
-  to: string
-  airline: string
-  departureDate: string
-  price: number
-}
 
-const mockFlights: Flight[] = [
-  { id: '1', from: 'New York', to: 'London', airline: 'American Airlines', departureDate: '2023-07-15', price: 450 },
-  { id: '2', from: 'Los Angeles', to: 'Tokyo', airline: 'Japan Airlines', departureDate: '2023-07-20', price: 800 },
-  { id: '3', from: 'Paris', to: 'Rome', airline: 'Air France', departureDate: '2023-07-18', price: 200 },
-  { id: '4', from: 'Dubai', to: 'Singapore', airline: 'Emirates', departureDate: '2023-07-22', price: 600 },
-  { id: '5', from: 'Sydney', to: 'Hong Kong', airline: 'Qantas', departureDate: '2023-07-25', price: 550 },
-  { id: '6', from: 'London', to: 'New York', airline: 'British Airways', departureDate: '2023-07-17', price: 480 },
+
+const mockFlights: Vuelo[] = [
+  { flight_id: 1, airline: 'American Airlines', origin: 'New York', destination: 'London', departure_date: new Date('2023-07-15'), arrival_date: new Date('2023-07-16'), price: 450, images: [{ url: '/placeholder.svg', descripcion: 'Avión' }], description: 'Vuelo directo a Londres', rating: 4.5, stock: 50 },
+  { flight_id: 2, airline: 'Japan Airlines', origin: 'Los Angeles', destination: 'Tokyo', departure_date: new Date('2023-07-20'), arrival_date: new Date('2023-07-21'), price: 800, images: [{ url: '/placeholder.svg', descripcion: 'Avión' }], description: 'Vuelo directo a Tokio', rating: 4.7, stock: 30 },
+  { flight_id: 3, airline: 'Air France', origin: 'Paris', destination: 'Rome', departure_date: new Date('2023-07-18'), arrival_date: new Date('2023-07-18'), price: 200, images: [{ url: '/placeholder.svg', descripcion: 'Avión' }], description: 'Vuelo corto a Roma', rating: 4.2, stock: 80 },
+  { flight_id: 4, airline: 'Emirates', origin: 'Dubai', destination: 'Singapore', departure_date: new Date('2023-07-22'), arrival_date: new Date('2023-07-23'), price: 600, images: [{ url: '/placeholder.svg', descripcion: 'Avión' }], description: 'Vuelo de lujo a Singapur', rating: 4.8, stock: 40 },
+  { flight_id: 5, airline: 'Qantas', origin: 'Sydney', destination: 'Hong Kong', departure_date: new Date('2023-07-25'), arrival_date: new Date('2023-07-26'), price: 550, images: [{ url: '/placeholder.svg', descripcion: 'Avión' }], description: 'Vuelo nocturno a Hong Kong', rating: 4.4, stock: 60 },
+  { flight_id: 6, airline: 'British Airways', origin: 'London', destination: 'New York', departure_date: new Date('2023-07-17'), arrival_date: new Date('2023-07-17'), price: 480, images: [{ url: '/placeholder.svg', descripcion: 'Avión' }], description: 'Vuelo transatlántico a Nueva York', rating: 4.6, stock: 55 },
 ]
 
 function FlightSearch() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [flights, setFlights] = useState<Flight[]>(mockFlights)
+  const [flights, setFlights] = useState<Vuelo[]>(mockFlights)
   const [sortBy, setSortBy] = useState<string>(searchParams.get('sortBy') || 'price')
   const [filterAirline, setFilterAirline] = useState<string>(searchParams.get('airline') || 'all')
   const [maxPrice, setMaxPrice] = useState<number>(parseInt(searchParams.get('maxPrice') || '1000'))
@@ -55,21 +50,23 @@ function FlightSearch() {
     filteredFlights = filteredFlights.filter(flight => flight.price <= maxPrice)
 
     if (fromLocation && fromLocation !== 'all') {
-      filteredFlights = filteredFlights.filter(flight => flight.from.toLowerCase().includes(fromLocation.toLowerCase()))
+      filteredFlights = filteredFlights.filter(flight => flight.origin.toLowerCase().includes(fromLocation.toLowerCase()))
     }
     if (toLocation && toLocation !== 'all') {
-      filteredFlights = filteredFlights.filter(flight => flight.to.toLowerCase().includes(toLocation.toLowerCase()))
+      filteredFlights = filteredFlights.filter(flight => flight.destination.toLowerCase().includes(toLocation.toLowerCase()))
     }
 
     if (departureDate) {
-      filteredFlights = filteredFlights.filter(flight => new Date(flight.departureDate).toDateString() === departureDate.toDateString())
+      filteredFlights = filteredFlights.filter(flight => flight.departure_date.toDateString() === departureDate.toDateString())
     }
 
     filteredFlights.sort((a, b) => {
       if (sortBy === 'price') {
         return a.price - b.price
       } else if (sortBy === 'date') {
-        return new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime()
+        return a.departure_date.getTime() - b.departure_date.getTime()
+      } else if (sortBy === 'rating') {
+        return b.rating - a.rating
       }
       return 0
     })
@@ -88,7 +85,7 @@ function FlightSearch() {
   }, [sortBy, filterAirline, maxPrice, fromLocation, toLocation, departureDate, router])
 
   const airlines = Array.from(new Set(mockFlights.map(flight => flight.airline)))
-  const locations = Array.from(new Set(mockFlights.flatMap(flight => [flight.from, flight.to])))
+  const locations = Array.from(new Set(mockFlights.flatMap(flight => [flight.origin, flight.destination])))
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -104,6 +101,7 @@ function FlightSearch() {
             <SelectContent>
               <SelectItem value="price">Precio</SelectItem>
               <SelectItem value="date">Fecha</SelectItem>
+              <SelectItem value="rating">Calificación</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -192,26 +190,42 @@ function FlightSearch() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {flights.map(flight => (
-          <Card key={flight.id}>
+          <Card key={flight.flight_id}>
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
-                <span>{flight.from} a {flight.to}</span>
+                <span>{flight.origin} a {flight.destination}</span>
                 <Plane className="h-6 w-6 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="aspect-video relative mb-4">
+                <Image
+                  src={flight.images[0].url}
+                  alt={flight.images[0].descripcion}
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-md"
+                />
+              </div>
               <p className="text-muted-foreground mb-2">{flight.airline}</p>
               <p className="flex items-center mb-2">
                 <Calendar className="h-4 w-4 mr-2 text-primary" />
-                {new Date(flight.departureDate).toLocaleDateString()}
+                {format(flight.departure_date, "PPP")}
               </p>
+              <p className="flex items-center mb-2">
+                <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                {flight.rating.toFixed(1)}
+              </p>
+              <p className="text-sm mb-2">{flight.description}</p>
               <p className="flex items-center font-bold text-lg">
                 <DollarSign className="h-5 w-5 mr-1 text-primary" />
                 {flight.price}
               </p>
             </CardContent>
             <CardFooter>
-              <Button className="w-full">Reservar ahora</Button>
+              <Button className="w-full" disabled={flight.stock === 0}>
+                {flight.stock > 0 ? 'Reservar ahora' : 'Agotado'}
+              </Button>
             </CardFooter>
           </Card>
         ))}
@@ -224,7 +238,6 @@ function FlightSearch() {
   )
 }
 
-// Default export wrapped in Suspense
 export default function FlightsPage() {
   return (
     <Suspense fallback={<div>Cargando...</div>}>

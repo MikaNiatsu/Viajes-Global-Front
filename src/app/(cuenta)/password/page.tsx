@@ -15,21 +15,33 @@ export default function PasswordRecovery() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pin, setPin] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [stage, setStage] = useState<"email" | "pin" | "newPassword" | "success">("email");
+  const [stage, setStage] = useState<
+    "email" | "pin" | "newPassword" | "success"
+  >("email");
   const [token, setToken] = useState<number | null>(null);
   const { toast } = useToast();
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      // TODO: Implement email submission logic here
-      console.log("Password reset requested for:", email);
-      // Simulating API call
+      const exists = await fetch(
+        process.env.NEXT_PUBLIC_ENDPOINT + "clients/getByEmail",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: email,
+        }
+      ).then((res) => res.json());
+      if (!exists) {
+        console.log(exists);
+        throw new Error("Correo electrónico no encontrado.");
+      }
       const response = await fetch("/api/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      })
+      });
       const data = await response.json();
       if (!email) {
         throw new Error("Por favor, introduce tu correo electrónico.");
@@ -37,7 +49,7 @@ export default function PasswordRecovery() {
       if (!response.ok) {
         throw new Error("Correo electrónico no encontrado.");
       }
-      setToken(data.token);  
+      setToken(data.token);
       //eslint-disable-next-line
       setStage("pin");
       toast({
@@ -49,8 +61,7 @@ export default function PasswordRecovery() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description:
-          error.message,
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -63,7 +74,6 @@ export default function PasswordRecovery() {
     const pinString = pin.join("");
     setIsLoading(true);
     try {
-      // TODO: Implement PIN verification logic here
       console.log("PIN submitted:", pinString);
       console.log("Token:", token);
       if (token !== null && pinString !== token.toString()) {
@@ -94,17 +104,39 @@ export default function PasswordRecovery() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // TODO: Implement new password submission logic here
       console.log("New password submitted");
       if (newPassword !== confirmPassword) {
         throw new Error("Las contraseñas no coinciden");
       }
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       toast({
         title: "Contraseña actualizada",
         description: "Tu contraseña ha sido actualizada correctamente.",
       });
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_ENDPOINT + "clients/updatePassword",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, newPassword }),
+          }
+        );
+        const data = await response.json();
+        if (response.ok && data === true) {
+          toast({
+            title: "Contraseña actualizada",
+            description: "Tu contraseña ha sido actualizada correctamente.",
+          });
+        }
+        //eslint-disable-next-line
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar la contraseña.",
+          variant: "destructive",
+        });
+      }
       // Reset the form and go back to the initial stage
       setEmail("");
       setPin(["", "", "", "", "", ""]);
@@ -142,10 +174,8 @@ export default function PasswordRecovery() {
       {/* Mobile Layout */}
       <div className="md:hidden min-h-screen">
         <div className="p-4 space-y-6">
-          <h1 className="text-2xl font-bold">
-            Recuperación de contraseña
-          </h1>
-          
+          <h1 className="text-2xl font-bold">Recuperación de contraseña</h1>
+
           {/* Email Stage */}
           {stage === "email" && (
             <div className="space-y-6">
@@ -155,7 +185,9 @@ export default function PasswordRecovery() {
               </p>
               <form onSubmit={handleEmailSubmit} className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="email" className="text-base">Correo electrónico</Label>
+                  <Label htmlFor="email" className="text-base">
+                    Correo electrónico
+                  </Label>
                   <Input
                     id="email"
                     placeholder="tu@email.com"
@@ -186,7 +218,9 @@ export default function PasswordRecovery() {
               </p>
               <form onSubmit={handlePinSubmit} className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="pin-0" className="text-base">Código de recuperación</Label>
+                  <Label htmlFor="pin-0" className="text-base">
+                    Código de recuperación
+                  </Label>
                   <div className="flex justify-between gap-2">
                     {pin.map((digit, index) => (
                       <Input
@@ -211,9 +245,9 @@ export default function PasswordRecovery() {
                 >
                   {isLoading ? "Verificando..." : "Verificar código"}
                 </Button>
-                <Button 
-                  variant="link" 
-                  type="button" 
+                <Button
+                  variant="link"
+                  type="button"
                   onClick={() => console.log("pin")}
                   className="w-full text-base"
                 >
@@ -231,7 +265,9 @@ export default function PasswordRecovery() {
               </p>
               <form onSubmit={handleNewPasswordSubmit} className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="newPassword" className="text-base">Nueva contraseña</Label>
+                  <Label htmlFor="newPassword" className="text-base">
+                    Nueva contraseña
+                  </Label>
                   <Input
                     id="newPassword"
                     type="password"
@@ -242,7 +278,9 @@ export default function PasswordRecovery() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label htmlFor="confirmPassword" className="text-base">Confirmar contraseña</Label>
+                  <Label htmlFor="confirmPassword" className="text-base">
+                    Confirmar contraseña
+                  </Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -255,7 +293,9 @@ export default function PasswordRecovery() {
                 <Button
                   type="submit"
                   className="w-full h-12 text-base"
-                  disabled={isLoading || !newPassword || newPassword !== confirmPassword}
+                  disabled={
+                    isLoading || !newPassword || newPassword !== confirmPassword
+                  }
                 >
                   {isLoading ? "Actualizando..." : "Cambiar contraseña"}
                 </Button>
@@ -267,7 +307,8 @@ export default function PasswordRecovery() {
           {stage === "success" && (
             <div className="space-y-6">
               <p className="text-base text-green-600">
-                Tu contraseña ha sido cambiada con éxito, ¡ahora puedes iniciar sesión!
+                Tu contraseña ha sido cambiada con éxito, ¡ahora puedes iniciar
+                sesión!
               </p>
             </div>
           )}
@@ -297,8 +338,8 @@ export default function PasswordRecovery() {
               {stage === "email" && (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Ingresa el correo electrónico asociado a tu cuenta para recibir
-                    un código de recuperación.
+                    Ingresa el correo electrónico asociado a tu cuenta para
+                    recibir un código de recuperación.
                   </p>
                   <form onSubmit={handleEmailSubmit} className="space-y-4">
                     <div className="space-y-2">
@@ -344,7 +385,9 @@ export default function PasswordRecovery() {
                             maxLength={1}
                             className="w-10 text-center"
                             value={digit}
-                            onChange={(e) => handlePinChange(index, e.target.value)}
+                            onChange={(e) =>
+                              handlePinChange(index, e.target.value)
+                            }
                             required
                           />
                         ))}
@@ -357,7 +400,11 @@ export default function PasswordRecovery() {
                     >
                       {isLoading ? "Verificando..." : "Verificar código"}
                     </Button>
-                    <Button variant="link" type="button" onClick={() => console.log("pin")}>
+                    <Button
+                      variant="link"
+                      type="button"
+                      onClick={() => console.log("pin")}
+                    >
                       Volver a Enviar código
                     </Button>
                   </form>
@@ -370,7 +417,10 @@ export default function PasswordRecovery() {
                   <p className="text-sm text-muted-foreground">
                     Ingresa tu nueva contraseña.
                   </p>
-                  <form onSubmit={handleNewPasswordSubmit} className="space-y-4">
+                  <form
+                    onSubmit={handleNewPasswordSubmit}
+                    className="space-y-4"
+                  >
                     <div className="space-y-2">
                       <Label htmlFor="newPassword">Nueva contraseña</Label>
                       <Input
@@ -382,7 +432,9 @@ export default function PasswordRecovery() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                      <Label htmlFor="confirmPassword">
+                        Confirmar contraseña
+                      </Label>
                       <Input
                         id="confirmPassword"
                         type="password"
@@ -394,7 +446,11 @@ export default function PasswordRecovery() {
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={isLoading || !newPassword || newPassword !== confirmPassword}
+                      disabled={
+                        isLoading ||
+                        !newPassword ||
+                        newPassword !== confirmPassword
+                      }
                     >
                       {isLoading ? "Actualizando..." : "Cambiar contraseña"}
                     </Button>
@@ -406,7 +462,8 @@ export default function PasswordRecovery() {
               {stage === "success" && (
                 <div className="space-y-4">
                   <p className="text-sm text-green-600">
-                    Tu contraseña ha sido cambiada con éxito, ¡ahora puedes iniciar sesión!
+                    Tu contraseña ha sido cambiada con éxito, ¡ahora puedes
+                    iniciar sesión!
                   </p>
                 </div>
               )}
