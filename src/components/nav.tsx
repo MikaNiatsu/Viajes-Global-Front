@@ -11,15 +11,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, User, LogOut, Settings, Menu, Sun, Moon } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  LogOut,
+  Settings,
+  Menu,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 
 const productCategories = [
   { name: "Viajes", href: "/viajes" },
   { name: "Hoteles", href: "/hoteles" },
-  { name: "Paquetes", href: "/paquetes" },
   { name: "Actividades", href: "/actividades" },
+  { name: "Paquetes", href: "/paquetes" },
 ];
 
 interface NavProps {
@@ -35,13 +43,9 @@ export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
 
   const refresh = () => {
     router.refresh();
-  }
+  };
 
-  const navItems = [
-    { name: "Inicio", href: "/" },
-    { name: "Ofertas", href: "/ofertas" },
-    { name: "Contacto", href: "/contacto" },
-  ];
+  const navItems = [{ name: "Inicio", href: "/" }];
 
   return (
     <header className="border-b sticky top-0 z-50 bg-background">
@@ -87,10 +91,17 @@ export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </Button>
           <Button variant="outline" size="icon">
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCart
+              className="h-5 w-5"
+              onClick={() => router.push("/carrito")}
+            />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -101,7 +112,9 @@ export default function Nav({ isLoggedIn, userEmail, onLogout }: NavProps) {
                       src="/placeholder.svg?height=32&width=32"
                       alt="@usuario"
                     />
-                    <AvatarFallback>{userEmail?.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>
+                      {userEmail?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 ) : (
                   <User className="h-5 w-5" />

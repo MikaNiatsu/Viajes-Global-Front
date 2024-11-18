@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Nav from "@/components/nav";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import NavbarSkeleton from "@/components/navbarSkeleton";
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
   const [isClient, setIsClient] = useState(false);
@@ -17,7 +18,7 @@ export default function Header() {
   };
 
   if (!isClient) {
-    return <div>Loading...</div>;
+    return <NavbarSkeleton />;
   }
 
   return (

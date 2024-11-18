@@ -25,12 +25,12 @@ export interface Hotel {
 }
 
 export interface Vuelo {
-    flight_id: number;
+    flightId: number;
     airline: string;
     origin: string;
     destination: string;
-    departure_date: Date;
-    arrival_date: Date;
+    departureDate: string;
+    arrivalDate: string;
     price: number;
     images: {
         url: string;

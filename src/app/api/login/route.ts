@@ -17,7 +17,6 @@ export async function POST(request: Request) {
       body: JSON.stringify({ email: correo, password: contrasena }),
     }
   );
-  console.log(response);
   if (response.ok) {
     const data = await response.json();
     const token = jwt.sign({ user: data }, SECRET_KEY, {

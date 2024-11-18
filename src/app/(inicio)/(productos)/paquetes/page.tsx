@@ -1,224 +1,357 @@
-"use client";
+'use client'
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Suspense, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
+} from "@/components/ui/card"
+import { Slider } from "@/components/ui/slider"
 import {
-  Plane,
-  Building,
   MapPin,
-  Calendar,
   DollarSign,
   Star,
-  Tag,
   ArrowRight,
   ArrowLeft,
-} from "lucide-react";
+  Loader2,
+  Info,
+  Plus,
+  Minus,
+  Calendar,
+} from "lucide-react"
+import { format } from "date-fns"
+import Image from "next/image"
+import { Progress } from "@/components/ui/progress"
+import { Vuelo, Hotel, Actividad } from "@/types/objects"
+import { es } from "date-fns/locale"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { toast } from "@/hooks/use-toast"
+import { Toaster } from "@/components/ui/toaster"
+import { useAuth } from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
 
-import { format } from "date-fns";
-import Image from "next/image";
-import { Progress } from "@/components/ui/progress";
-import { Vuelo, Hotel, Actividad } from "@/types/objects";
+interface PackageDTO {
+  price: number
+  hotel_id: number | null
+  flight_id: number | null
+  activity_id: number | null
+}
 
-
-
-const mockFlights: Vuelo[] = [
-  {
-    flight_id: 1,
-    airline: "American Airlines",
-    origin: "New York",
-    destination: "London",
-    departure_date: new Date("2023-07-15"),
-    arrival_date: new Date("2023-07-16"),
-    price: 450,
-    images: [{ url: "/placeholder.svg", descripcion: "Avión" }],
-    description: "Vuelo directo a Londres",
-    rating: 4.5,
-    stock: 50,
-  },
-  {
-    flight_id: 2,
-    airline: "Japan Airlines",
-    origin: "Los Angeles",
-    destination: "Tokyo",
-    departure_date: new Date("2023-07-20"),
-    arrival_date: new Date("2023-07-21"),
-    price: 800,
-    images: [{ url: "/placeholder.svg", descripcion: "Avión" }],
-    description: "Vuelo directo a Tokio",
-    rating: 4.7,
-    stock: 30,
-  },
-  {
-    flight_id: 3,
-    airline: "Air France",
-    origin: "Paris",
-    destination: "Rome",
-    departure_date: new Date("2023-07-18"),
-    arrival_date: new Date("2023-07-18"),
-    price: 200,
-    images: [{ url: "/placeholder.svg", descripcion: "Avión" }],
-    description: "Vuelo corto a Roma",
-    rating: 4.2,
-    stock: 80,
-  },
-];
-
-const mockHotels: Hotel[] = [
-  {
-    hotel_id: 1,
-    name: "Grand Hotel",
-    address: "123 Main St",
-    city: "London",
-    country: "UK",
-    price_per_night: 200,
-    images: [{ url: "/placeholder.svg", descripcion: "Hotel exterior" }],
-    description: "Lujoso hotel en el centro de la ciudad",
-    rating: 4.5,
-    stock: 10,
-  },
-  {
-    hotel_id: 2,
-    name: "Tokyo Towers",
-    address: "456 Sakura Ave",
-    city: "Tokyo",
-    country: "Japan",
-    price_per_night: 300,
-    images: [{ url: "/placeholder.svg", descripcion: "Vista de la ciudad" }],
-    description: "Hotel moderno con vistas espectaculares",
-    rating: 4.7,
-    stock: 5,
-  },
-  {
-    hotel_id: 3,
-    name: "Roma Retreat",
-    address: "789 Via Roma",
-    city: "Rome",
-    country: "Italy",
-    price_per_night: 250,
-    images: [{ url: "/placeholder.svg", descripcion: "Hotel histórico" }],
-    description: "Encantador hotel en el corazón de Roma",
-    rating: 4.3,
-    stock: 8,
-  },
-];
-
-const mockActivities: Actividad[] = [
-  {
-    activity_id: 1,
-    name: "Tour por Londres",
-    description: "Explora los lugares más emblemáticos de Londres",
-    price: 50,
-    location: "London",
-    category: "Tour",
-    images: [{ url: "/placeholder.svg", descripcion: "Tour por Londres" }],
-    rating: 4.5,
-    stock: 20,
-  },
-  {
-    activity_id: 2,
-    name: "Ceremonia del té",
-    description: "Experimenta la tradicional ceremonia del té japonesa",
-    price: 80,
-    location: "Tokyo",
-    category: "Cultura",
-    images: [{ url: "/placeholder.svg", descripcion: "Ceremonia del té" }],
-    rating: 4.7,
-    stock: 10,
-  },
-  {
-    activity_id: 3,
-    name: "Tour del Coliseo",
-    description: "Visita guiada al icónico Coliseo romano",
-    price: 70,
-    location: "Rome",
-    category: "Historia",
-    images: [{ url: "/placeholder.svg", descripcion: "Coliseo" }],
-    rating: 4.8,
-    stock: 15,
-  },
-];
+interface BookingDTO {
+  customer_id: number
+  booking_date: Date
+  booking_status: string
+  name: string
+  email: string
+  phone: string
+  package_id: number
+}
 
 function PackageBuilder() {
-  const [step, setStep] = useState(1);
-  const [selectedFlight, setSelectedFlight] = useState<Vuelo | null>(null);
-  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
-  const [selectedActivities, setSelectedActivities] = useState<Actividad[]>([]);
-
-  const [flights, setFlights] = useState<Vuelo[]>(mockFlights);
-  const [hotels, setHotels] = useState<Hotel[]>(mockHotels);
-  const [activities, setActivities] = useState<Actividad[]>(mockActivities);
-
-  //const router = useRouter()
-  const searchParams = useSearchParams();
-
+  const router = useRouter()
+  const { isAuthenticated, user } = useAuth()
+  const [step, setStep] = useState(1)
+  const [selectedFlight, setSelectedFlight] = useState<Vuelo | null>(null)
+  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null)
+  const [selectedActivity, setSelectedActivity] = useState<Actividad | null>(null)
+  const [flights, setFlights] = useState<Vuelo[]>([])
+  const [hotels, setHotels] = useState<Hotel[]>([])
+  const [activities, setActivities] = useState<Actividad[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  //eslint-disable-next-line
+  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
   const [sortBy, setSortBy] = useState<string>(
     searchParams.get("sortBy") || "price"
-  );
+  )
   const [maxPrice, setMaxPrice] = useState<number>(
     parseInt(searchParams.get("maxPrice") || "1000")
-  );
+  )
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [customerName, setCustomerName] = useState("")
+  const [customerEmail, setCustomerEmail] = useState("")
+  const [customerPhone, setCustomerPhone] = useState("")
 
-  const handleNext = () => {
-    setStep(step + 1);
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setCustomerName(user.name || "")
+      setCustomerEmail(user.email || "")
+      setCustomerPhone(user.phone || "")
+    } else {
+      // Load data from localStorage if not authenticated
+      const savedBooking = localStorage.getItem('savedBooking')
+      if (savedBooking) {
+        const parsedBooking = JSON.parse(savedBooking)
+        setCustomerName(parsedBooking.name || "")
+        setCustomerEmail(parsedBooking.email || "")
+        setCustomerPhone(parsedBooking.phone || "")
+        setSelectedFlight(parsedBooking.selectedFlight || null)
+        setSelectedHotel(parsedBooking.selectedHotel || null)
+        setSelectedActivity(parsedBooking.selectedActivity || null)
+      }
+    }
+  }, [isAuthenticated, user])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const [flightsResponse, hotelsResponse, activitiesResponse] =
+          await Promise.all([
+            fetch(`${process.env.NEXT_PUBLIC_ENDPOINT}flights/showAll`),
+            fetch(`${process.env.NEXT_PUBLIC_ENDPOINT}hotels/showAll`),
+            fetch(`${process.env.NEXT_PUBLIC_ENDPOINT}activities/showAll`),
+          ])
+
+        if (
+          !flightsResponse.ok ||
+          !hotelsResponse.ok ||
+          !activitiesResponse.ok
+        ) {
+          throw new Error("Failed to fetch data")
+        }
+
+        const flightsData: Vuelo[] = await flightsResponse.json()
+        const hotelsData: Hotel[] = await hotelsResponse.json()
+        const activitiesData: Actividad[] = await activitiesResponse.json()
+
+        setFlights(flightsData)
+        setHotels(hotelsData)
+        setActivities(activitiesData)
+      } catch (err) {
+        setError(
+          "Error al cargar los datos. Por favor, intenta de nuevo más tarde."
+        )
+        console.error("Error fetching data:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  const createPackage = async (): Promise<number | null> => {
+    if (!selectedFlight && !selectedHotel && !selectedActivity) {
+      toast({
+        title: "Error",
+        description: "Por favor, selecciona al menos una cosa.",
+        variant: "destructive",
+      })
+      return null
+    }
+
+    const totalPrice =
+      (selectedFlight?.price || 0) +
+      (selectedHotel?.price_per_night || 0) * 3 +
+      (selectedActivity?.price || 0)
+
+    const packageData: PackageDTO = {
+      price: totalPrice,
+      hotel_id: selectedHotel?.hotel_id || null,
+      flight_id: selectedFlight?.flightId || null,
+      activity_id: selectedActivity?.activity_id || null,
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_ENDPOINT}packages/createPackage`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(packageData),
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error("Failed to create package")
+      }
+
+      const result = await response.json()
+      return result as number
+    } catch (error) {
+      console.error("Error creating package:", error)
+      toast({
+        title: "Error",
+        description:
+          "Hubo un problema al crear el paquete. Por favor, intenta de nuevo.",
+        variant: "destructive",
+      })
+      return null
+    }
+  }
+
+  const handleBooking = async () => {
+    if (!isAuthenticated) {
+      // Save booking information to localStorage
+      const bookingInfo = {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+        selectedFlight,
+        selectedHotel,
+        selectedActivity
+      }
+      localStorage.setItem('savedBooking', JSON.stringify(bookingInfo))
+      toast({
+        title: "Información guardada",
+        description: "Tu selección ha sido guardada. Por favor, inicia sesión para completar la reserva.",
+      })
+      router.push("/")
+      return
+    }
+
+    const packageId = await createPackage()
+    if (!packageId) return
+    console.log("Package ID:", packageId)
+    const bookingData: BookingDTO = {
+      customer_id: user?.customer_id || -1,
+      booking_date: new Date(),
+      booking_status: "PENDING",
+      name: customerName,
+      email: customerEmail,
+      phone: customerPhone,
+      package_id: packageId,
+    }
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_ENDPOINT}bookings/createBooking`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error("Failed to create booking")
+      }
+      await response.json()
+      toast({
+        title: "Reserva exitosa",
+        description: `Tu reserva ha sido creada`,
+      })
+      localStorage.removeItem('savedBooking')
+      sendBookingMessage()
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+      router.push("/")
+    } catch (error) {
+      console.error("Error creating booking:", error)
+      toast({
+        title: "Error",
+        description:
+          "Hubo un problema al crear la reserva. Por favor, intenta de nuevo.",
+        variant: "destructive",
+      })
+    }
   };
 
-  const handlePrevious = () => {
-    setStep(step - 1);
+  const sendBookingMessage = async () => {
+    try {
+      const messageData = {
+        message: "Se realizo la reserva",
+        messageHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0;">
+  <div style="text-align: center; padding: 20px 0;">
+    <h1 style="color: #2C3E50; margin: 0; padding: 0;">¡Reserva Confirmada!</h1>
+  </div>
+  
+  <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <p style="color: #2C3E50; font-size: 16px; line-height: 1.6; margin: 0;">
+      Nos complace informarle que hemos recibido correctamente su reserva:
+    </p>
+    
+    <p style="color: #2C3E50; font-size: 16px; line-height: 1.6; margin: 20px 0 0 0;">
+      Gracias por confiar en nuestros servicios. Le mantendremos informado sobre el estado de su reserva.
+    </p>
+  </div>
+  
+  <div style="text-align: center; padding: 20px 0; color: #7f8c8d; font-size: 14px; border-top: 1px solid #e0e0e0; margin-top: 20px;">
+    <p style="margin: 10px 0;">Si tiene alguna pregunta, no dude en contactarnos.</p>
+    <p style="margin: 5px 0;">© 2024 Viajes Global. Todos los derechos reservados.</p>
+  </div>
+</div>`,
+        to: user?.email,
+        subject: "Pago realizado",
+        id: user?.customer_id,
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_ENDPOINT}notifications/sendNotification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(messageData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send payment message");
+      }
+
+      console.log("Payment message sent successfully");
+    } catch (error) {
+      console.error("Error sending payment message:", error);
+    }
+  };
+  const handleStepChange = (newStep: number) => {
+    setStep(newStep);
   };
 
   const handleFlightSelect = (flight: Vuelo) => {
-    setSelectedFlight(flight);
-    setHotels(mockHotels.filter((hotel) => hotel.city === flight.destination));
-    handleNext();
+    setSelectedFlight(selectedFlight?.flightId === flight.flightId ? null : flight);
   };
 
   const handleHotelSelect = (hotel: Hotel) => {
-    setSelectedHotel(hotel);
-    setActivities(
-      mockActivities.filter((activity) => activity.location === hotel.city)
-    );
-    handleNext();
+    setSelectedHotel(selectedHotel?.hotel_id === hotel.hotel_id ? null : hotel);
   };
 
-  const handleActivityToggle = (activity: Actividad) => {
-    setSelectedActivities((prevActivities) => {
-      const activityIndex = prevActivities.findIndex(
-        (a) => a.activity_id === activity.activity_id
-      );
-      if (activityIndex > -1) {
-        return prevActivities.filter(
-          (a) => a.activity_id !== activity.activity_id
-        );
-      } else {
-        return [...prevActivities, activity];
-      }
-    });
+  const handleActivitySelect = (activity: Actividad) => {
+    setSelectedActivity(selectedActivity?.activity_id === activity.activity_id ? null : activity);
   };
-
-  const totalPrice =
-    (selectedFlight?.price || 0) +
-    (selectedHotel?.price_per_night || 0) * 3 + // Assuming 3 nights stay
-    selectedActivities.reduce((sum, activity) => sum + activity.price, 0);
 
   const renderFilters = () => (
     <div className="space-y-6">
+      <div className="mt-8 flex justify-between">
+        <Button
+          onClick={() => handleStepChange(step - 1)}
+          disabled={step === 1}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+        </Button>
+        <Button
+          onClick={() => handleStepChange(step + 1)}
+          disabled={step === 4}
+        >
+          {step === 3 ? "Ver Resumen" : "Siguiente"}{" "}
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
       <div>
         <Label htmlFor="sortBy">Ordenar por</Label>
         <Select value={sortBy} onValueChange={setSortBy}>
@@ -244,23 +377,56 @@ function PackageBuilder() {
         />
       </div>
       {step === 1 && (
-        <div>
-          <Label htmlFor="fromLocation">Desde</Label>
-          <Select value={selectedFlight?.origin || ""} onValueChange={() => {}}>
-            <SelectTrigger id="fromLocation">
-              <SelectValue placeholder="Seleccionar origen" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from(new Set(flights.map((f) => f.origin))).map(
-                (origin) => (
-                  <SelectItem key={origin} value={origin}>
-                    {origin}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+        <>
+          <div>
+            <Label htmlFor="fromLocation">Desde</Label>
+            <Select
+              value={selectedFlight?.origin || ""}
+              onValueChange={() => {}}
+            >
+              <SelectTrigger id="fromLocation">
+                <SelectValue placeholder="Seleccionar origen" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from(new Set(flights.map((f) => f.origin))).map(
+                  (origin) => (
+                    <SelectItem key={origin} value={origin}>
+                      {origin}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="departureDate">Fecha de salida</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={`w-full justify-start text-left font-normal ${
+                    !selectedDate && "text-muted-foreground"
+                  }`}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {selectedDate ? (
+                    format(selectedDate, "PPP", { locale: es })
+                  ) : (
+                    <span>Seleccionar fecha</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </>
       )}
       {step === 2 && (
         <div>
@@ -305,34 +471,18 @@ function PackageBuilder() {
     <div className="mb-8">
       <Progress value={(step / 4) * 100} className="mb-2" />
       <div className="flex justify-between">
-        <span
-          className={
-            step >= 1 ? "text-primary font-bold" : "text-muted-foreground"
-          }
-        >
-          Vuelo
-        </span>
-        <span
-          className={
-            step >= 2 ? "text-primary font-bold" : "text-muted-foreground"
-          }
-        >
-          Hotel
-        </span>
-        <span
-          className={
-            step >= 3 ? "text-primary font-bold" : "text-muted-foreground"
-          }
-        >
-          Actividades
-        </span>
-        <span
-          className={
-            step >= 4 ? "text-primary font-bold" : "text-muted-foreground"
-          }
-        >
-          Resumen
-        </span>
+        {["Vuelo", "Hotel", "Actividades", "Resumen"].map((label, index) => (
+          <button
+            key={label}
+            className={`text-sm font-medium ${
+              step >= index + 1 ? "text-primary" : "text-muted-foreground"
+            } ${step === index + 1 ? "font-bold" : ""} focus:outline-none`}
+            onClick={() => handleStepChange(index + 1)}
+            disabled={index + 1 > step}
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -341,51 +491,76 @@ function PackageBuilder() {
     <div>
       <h2 className="text-2xl font-bold mb-4">Selecciona tu vuelo</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {flights.map((flight) => (
-          <Card
-            key={flight.flight_id}
-            className={`cursor-pointer transition-all ${
-              selectedFlight?.flight_id === flight.flight_id
-                ? "ring-2 ring-primary"
-                : ""
-            }`}
-            onClick={() => handleFlightSelect(flight)}
-          >
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>
-                  {flight.origin} a {flight.destination}
-                </span>
-                <Plane className="h-6 w-6 text-primary" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-video relative mb-4">
-                <Image
-                  src={flight.images[0].url}
-                  alt={flight.images[0].descripcion}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-md"
-                />
-              </div>
-              <p className="text-muted-foreground mb-2">{flight.airline}</p>
-              <p className="flex items-center mb-2">
-                <Calendar className="h-4 w-4 mr-2 text-primary" />
-                {format(flight.departure_date, "PPP")}
-              </p>
-              <p className="flex items-center mb-2">
-                <Star className="h-4 w-4 mr-2 text-yellow-400" />
-                {flight.rating.toFixed(1)}
-              </p>
-              <p className="text-sm mb-2">{flight.description}</p>
-              <p className="flex items-center font-bold text-lg">
-                <DollarSign className="h-5 w-5 mr-1 text-primary" />
-                {flight.price}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        {flights
+          .filter(
+            (flight) =>
+              !selectedDate ||
+              new Date(flight.departureDate).toDateString() ===
+                selectedDate.toDateString()
+          )
+          .map((flight) => (
+            <Card
+              key={flight.flightId}
+              className={`relative transition-all ${
+                selectedFlight?.flightId === flight.flightId
+                  ? "ring-2 ring-primary"
+                  : ""
+              }`}
+            >
+              <CardHeader>
+                <CardTitle>{flight.airline}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="aspect-video relative mb-4">
+                  <Image
+                    src={flight.images[0]?.url || "/placeholders/flight.jpg"}
+                    alt={flight.images[0]?.descripcion || "Flight image"}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
+                  />
+                </div>
+                <p className="flex items-center mb-2">
+                  <MapPin className="h-4 w-4 mr-2 text-primary" />
+                  {flight.origin} - &gt; {flight.destination}
+                </p>
+                <p className="flex items-center mb-2">
+                  <Calendar className="h-4 w-4 mr-2 text-primary" />
+                  {format(new Date(flight.departureDate), "PPP", {
+                    locale: es,
+                  })}
+                </p>
+                <p className="flex items-center mb-2">
+                  <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                  {flight.rating.toFixed(1)}
+                </p>
+                <p className="text-sm mb-2">{flight.description}</p>
+                <p className="flex items-center font-bold text-lg">
+                  <DollarSign className="h-5 w-5 mr-1 text-primary" />
+                  {flight.price}
+                </p>
+              </CardContent>
+              <CardFooter className="flex justify-between items-center">
+                <Link href={`/viajes/${flight.flightId}`} passHref>
+                  <Button variant="outline">
+                    <Info className="mr-2 h-4 w-4" />
+                    Más detalles
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  className="rounded-full p-2"
+                  onClick={() => handleFlightSelect(flight)}
+                >
+                  {selectedFlight?.flightId === flight.flightId ? (
+                    <Minus className="h-5 w-5" />
+                  ) : (
+                    <Plus className="h-5 w-5" />
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
       </div>
     </div>
   );
@@ -397,24 +572,20 @@ function PackageBuilder() {
         {hotels.map((hotel) => (
           <Card
             key={hotel.hotel_id}
-            className={`cursor-pointer transition-all ${
+            className={`relative transition-all ${
               selectedHotel?.hotel_id === hotel.hotel_id
                 ? "ring-2 ring-primary"
                 : ""
             }`}
-            onClick={() => handleHotelSelect(hotel)}
           >
             <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{hotel.name}</span>
-                <Building className="h-6 w-6 text-primary" />
-              </CardTitle>
+              <CardTitle>{hotel.name}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="aspect-video relative mb-4">
                 <Image
-                  src={hotel.images[0].url}
-                  alt={hotel.images[0].descripcion}
+                  src={hotel.images[0]?.url || "/placeholders/hotel.jpg"}
+                  alt={hotel.images[0]?.descripcion || "Hotel image"}
                   layout="fill"
                   objectFit="cover"
                   className="rounded-md"
@@ -434,6 +605,25 @@ function PackageBuilder() {
                 {hotel.price_per_night} / noche
               </p>
             </CardContent>
+            <CardFooter className="flex justify-between items-center">
+              <Link href={`/hoteles/${hotel.hotel_id}`} passHref>
+                <Button variant="outline">
+                  <Info className="mr-2 h-4 w-4" />
+                  Más detalles
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="rounded-full p-2"
+                onClick={() => handleHotelSelect(hotel)}
+              >
+                {selectedHotel?.hotel_id === hotel.hotel_id ? (
+                  <Minus className="h-5 w-5" />
+                ) : (
+                  <Plus className="h-5 w-5" />
+                )}
+              </Button>
+            </CardFooter>
           </Card>
         ))}
       </div>
@@ -442,31 +632,27 @@ function PackageBuilder() {
 
   const renderActivitiesStep = () => (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Selecciona tus actividades</h2>
+      <h2 className="text-2xl font-bold mb-4">Selecciona una actividad</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {activities.map((activity) => (
           <Card
             key={activity.activity_id}
-            className={`cursor-pointer transition-all ${
-              selectedActivities.some(
-                (a) => a.activity_id === activity.activity_id
-              )
+            className={`relative transition-all ${
+              selectedActivity?.activity_id === activity.activity_id
                 ? "ring-2 ring-primary"
                 : ""
             }`}
-            onClick={() => handleActivityToggle(activity)}
           >
             <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{activity.name}</span>
-                <Tag className="h-6 w-6 text-primary" />
-              </CardTitle>
+              <CardTitle>{activity.name}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="aspect-video relative mb-4">
                 <Image
-                  src={activity.images[0].url}
-                  alt={activity.images[0].descripcion}
+                  src={
+                    activity.images[0]?.url || "/placeholders/activities.jpg"
+                  }
+                  alt={activity.images[0]?.descripcion || "Activity image"}
                   layout="fill"
                   objectFit="cover"
                   className="rounded-md"
@@ -487,65 +673,123 @@ function PackageBuilder() {
                 {activity.price}
               </p>
             </CardContent>
+            <CardFooter className="flex justify-between items-center">
+              <Link href={`/actividades/${activity.activity_id}`} passHref>
+                <Button variant="outline">
+                  <Info className="mr-2 h-4 w-4" />
+                  Más detalles
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="rounded-full p-2"
+                onClick={() => handleActivitySelect(activity)}
+              >
+                {selectedActivity?.activity_id === activity.activity_id ? (
+                  <Minus className="h-5 w-5" />
+                ) : (
+                  <Plus className="h-5 w-5" />
+                )}
+              </Button>
+            </CardFooter>
           </Card>
         ))}
       </div>
     </div>
   );
 
-  const renderSummary = () => (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Resumen del Paquete</h2>
-      <Card>
-        <CardHeader>
-          <CardTitle>Tu Paquete de Viaje</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {selectedFlight && (
-              <div>
-                <h3 className="font-bold">Vuelo</h3>
-                <p>
-                  {selectedFlight.airline}: {selectedFlight.origin} a{" "}
-                  {selectedFlight.destination}
-                </p>
-                <p>Fecha: {format(selectedFlight.departure_date, "PPP")}</p>
-                <p>Precio: ${selectedFlight.price}</p>
-              </div>
-            )}
-            {selectedHotel && (
-              <div>
-                <h3 className="font-bold">Hotel</h3>
-                <p>
-                  {selectedHotel.name} en {selectedHotel.city},{" "}
-                  {selectedHotel.country}
-                </p>
-                <p>Precio por noche: ${selectedHotel.price_per_night}</p>
-                <p>Total por 3 noches: ${selectedHotel.price_per_night * 3}</p>
-              </div>
-            )}
-            {selectedActivities.length > 0 && (
-              <div>
-                <h3 className="font-bold">Actividades</h3>
-                {selectedActivities.map((activity) => (
-                  <p key={activity.activity_id}>
-                    {activity.name}: ${activity.price}
+  const renderSummary = () => {
+    const totalPrice =
+      (selectedFlight?.price || 0) +
+      (selectedHotel?.price_per_night || 0) * 3 +
+      (selectedActivity?.price || 0);
+
+    return (
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Resumen del Paquete</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Tu Paquete de Viaje</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {selectedFlight && (
+                <div>
+                  <h3 className="font-bold">Vuelo</h3>
+                  <p>
+                    {selectedFlight.airline}: {selectedFlight.origin} a{" "}
+                    {selectedFlight.destination}
                   </p>
-                ))}
+                  <p>
+                    Fecha:{" "}
+                    {format(new Date(selectedFlight.departureDate), "PPP", {
+                      locale: es,
+                    })}
+                  </p>
+                  <p>Precio: ${selectedFlight.price}</p>
+                </div>
+              )}
+              {selectedHotel && (
+                <div>
+                  <h3 className="font-bold">Hotel</h3>
+                  <p>
+                    {selectedHotel.name} en {selectedHotel.city},{" "}
+                    {selectedHotel.country}
+                  </p>
+                  <p>Precio por noche: ${selectedHotel.price_per_night}</p>
+                  <p>
+                    Total por 3 noches: ${selectedHotel.price_per_night * 3}
+                  </p>
+                </div>
+              )}
+              {selectedActivity && (
+                <div>
+                  <h3 className="font-bold">Actividad</h3>
+                  <p>{selectedActivity.name}: ${selectedActivity.price}</p>
+                </div>
+              )}
+              <div>
+                <h3 className="font-bold">Precio Total</h3>
+                <p>${totalPrice}</p>
               </div>
-            )}
-            <div>
-              <h3 className="font-bold">Precio Total</h3>
-              <p>${totalPrice}</p>
             </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full">Reservar Paquete</Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
+            <div className="mt-6 space-y-4">
+              <h3 className="font-bold">Información del Cliente</h3>
+              <Input
+                placeholder="Nombre completo"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+              />
+              <Input
+                type="email"
+                placeholder="Correo electrónico"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+              />
+              <Input
+                placeholder="Teléfono"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full" onClick={handleBooking}>
+              Reservar Paquete
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -553,25 +797,16 @@ function PackageBuilder() {
 
       {renderProgressIndicator()}
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="md:w-1/4">{renderFilters()}</div>
-        <div className="md:w-3/4">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:w-1/4">{renderFilters()}</div>
+        <div className="lg:w-3/4">
           {step === 1 && renderFlightStep()}
           {step === 2 && renderHotelStep()}
           {step === 3 && renderActivitiesStep()}
           {step === 4 && renderSummary()}
-
-          <div className="mt-8 flex justify-between">
-            <Button onClick={handlePrevious} disabled={step === 1}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
-            </Button>
-            <Button onClick={handleNext} disabled={step === 4}>
-              {step === 3 ? "Ver Resumen" : "Siguiente"}{" "}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }

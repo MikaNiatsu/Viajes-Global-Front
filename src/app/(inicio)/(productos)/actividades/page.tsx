@@ -1,45 +1,57 @@
-"use client"
+'use client'
 
-import { Suspense } from 'react'
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { MapPin, DollarSign, Star, Tag } from 'lucide-react'
-import Image from 'next/image'
+import { Loader2 } from 'lucide-react'
 import { Actividad } from '@/types/objects'
-
-const mockActivities: Actividad[] = [
-  { activity_id: 1, name: 'Tour por la ciudad', description: 'Explora los lugares más emblemáticos de la ciudad', price: 50, location: 'New York', category: 'Tour', images: [{ url: '/placeholder.svg', descripcion: 'Tour por la ciudad' }], rating: 4.5, stock: 20 },
-  { activity_id: 2, name: 'Clase de surf', description: 'Aprende a surfear con instructores profesionales', price: 80, location: 'Hawaii', category: 'Deporte', images: [{ url: '/placeholder.svg', descripcion: 'Clase de surf' }], rating: 4.7, stock: 10 },
-  { activity_id: 3, name: 'Cata de vinos', description: 'Degusta los mejores vinos de la región', price: 70, location: 'Napa Valley', category: 'Gastronomía', images: [{ url: '/placeholder.svg', descripcion: 'Cata de vinos' }], rating: 4.8, stock: 15 },
-  { activity_id: 4, name: 'Senderismo', description: 'Recorre hermosos senderos naturales', price: 30, location: 'Yosemite', category: 'Aventura', images: [{ url: '/placeholder.svg', descripcion: 'Senderismo' }], rating: 4.6, stock: 25 },
-  { activity_id: 5, name: 'Visita a museo', description: 'Explora fascinantes exhibiciones de arte e historia', price: 20, location: 'Washington D.C.', category: 'Cultura', images: [{ url: '/placeholder.svg', descripcion: 'Visita a museo' }], rating: 4.4, stock: 50 },
-  { activity_id: 6, name: 'Paseo en globo', description: 'Disfruta de vistas panorámicas desde las alturas', price: 200, location: 'Albuquerque', category: 'Aventura', images: [{ url: '/placeholder.svg', descripcion: 'Paseo en globo' }], rating: 4.9, stock: 5 },
-]
+import ActivityCard from '@/components/activityCard'
 
 function ActivitySearch() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [activities, setActivities] = useState<Actividad[]>(mockActivities)
+  const [allActivities, setAllActivities] = useState<Actividad[]>([])
   const [sortBy, setSortBy] = useState<string>(searchParams.get('sortBy') || 'price')
   const [filterCategory, setFilterCategory] = useState<string>(searchParams.get('category') || 'all')
   const [maxPrice, setMaxPrice] = useState<number>(parseInt(searchParams.get('maxPrice') || '200'))
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let filteredActivities = [...mockActivities]
-
-    if (filterCategory && filterCategory !== 'all') {
-      filteredActivities = filteredActivities.filter(activity => activity.category === filterCategory)
+    const fetchActivities = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT}activities/showAll`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch activities')
+        }
+        const data: Actividad[] = await response.json()
+        setAllActivities(data)
+      } catch (err) {
+        setError('Error al cargar las actividades. Por favor, intenta de nuevo más tarde.')
+        console.error('Error fetching activities:', err)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    filteredActivities = filteredActivities.filter(activity => activity.price <= maxPrice)
+    fetchActivities()
+  }, [])
 
-    filteredActivities.sort((a, b) => {
+  const filteredAndSortedActivities = useMemo(() => {
+    let result = [...allActivities]
+
+    if (filterCategory && filterCategory !== 'all') {
+      result = result.filter(activity => activity.category === filterCategory)
+    }
+
+    result = result.filter(activity => activity.price <= maxPrice)
+
+    result.sort((a, b) => {
       if (sortBy === 'price') {
         return a.price - b.price
       } else if (sortBy === 'rating') {
@@ -48,17 +60,35 @@ function ActivitySearch() {
       return 0
     })
 
-    setActivities(filteredActivities)
+    return result
+  }, [allActivities, filterCategory, maxPrice, sortBy])
 
-    const params = new URLSearchParams()
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams)
     if (sortBy) params.set('sortBy', sortBy)
     if (filterCategory !== 'all') params.set('category', filterCategory)
     if (maxPrice !== 200) params.set('maxPrice', maxPrice.toString())
 
-    router.push(`/actividades?${params.toString()}`)
-  }, [sortBy, filterCategory, maxPrice, router])
+    router.push(`/actividades?${params.toString()}`, { scroll: false })
+  }, [sortBy, filterCategory, maxPrice, router, searchParams])
 
-  const categories = Array.from(new Set(mockActivities.map(activity => activity.category)))
+  const categories = useMemo(() => Array.from(new Set(allActivities.map(activity => activity.category))), [allActivities])
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-center text-red-500">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -108,49 +138,12 @@ function ActivitySearch() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activities.map(activity => (
-          <Card key={activity.activity_id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>{activity.name}</span>
-                <Tag className="h-6 w-6 text-primary" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-video relative mb-4">
-                <Image
-                  src={activity.images[0].url}
-                  alt={activity.images[0].descripcion}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-md"
-                />
-              </div>
-              <p className="flex items-center mb-2">
-                <MapPin className="h-4 w-4 mr-2 text-primary" />
-                {activity.location}
-              </p>
-              <p className="flex items-center mb-2">
-                <Star className="h-4 w-4 mr-2 text-yellow-400" />
-                {activity.rating.toFixed(1)}
-              </p>
-              <p className="text-sm mb-2">{activity.description}</p>
-              <p className="text-sm mb-2">Categoría: {activity.category}</p>
-              <p className="flex items-center font-bold text-lg">
-                <DollarSign className="h-5 w-5 mr-1 text-primary" />
-                {activity.price}
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" disabled={activity.stock === 0}>
-                {activity.stock > 0 ? 'Reservar ahora' : 'Agotado'}
-              </Button>
-            </CardFooter>
-          </Card>
+        {filteredAndSortedActivities.map(activity => (
+          <ActivityCard key={activity.activity_id} activity={activity} />
         ))}
       </div>
 
-      {activities.length === 0 && (
+      {filteredAndSortedActivities.length === 0 && (
         <p className="text-center text-muted-foreground mt-8">No se encontraron actividades que coincidan con los criterios de búsqueda.</p>
       )}
     </div>
