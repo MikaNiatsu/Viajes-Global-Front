@@ -69,6 +69,3 @@ src/
 - 💳 Integration with SecurePay payment gateway
 
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
